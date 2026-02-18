@@ -36,7 +36,58 @@ graph TD
 
 ---
 
-## 🔄 Document Processing Sequence (Part 3)
+## 🔄 Document Processing Sequences
+
+### Part 1: Classic ML Classification
+
+The following sequence diagram illustrates the lifecycle of documents through the classic ML pipeline—from raw text to sparse vectorization, classifier benchmarking, and evaluation outputs.
+
+```mermaid
+sequenceDiagram
+    participant D as Dataset (10k Rows)
+    participant V as Vectorizer (TF-IDF / BoW)
+    participant C as Classifier Bench (MNB, LogReg, SVC, RF)
+    participant E as Evaluator
+
+    D->>V: Load cleaned text (train/test split)
+    V->>V: Build vocabulary (max 50k features)
+    V->>V: Fit on train, transform train & test
+    V->>C: Sparse feature matrices
+    C->>C: Train each classifier (stratified)
+    C->>E: Predictions & true labels
+    E->>E: Compute accuracy, F1, confusion matrices
+    E->>E: Generate comparison table PNG
+    E->>E: Save confusion matrix heatmaps
+```
+
+---
+
+### Part 2: Neural Embedding Classification
+
+The following sequence diagram illustrates the lifecycle of documents through the neural embedding pipeline—dense vectorization, scaling for MNB compatibility, and classifier evaluation.
+
+```mermaid
+sequenceDiagram
+    participant D as Dataset (10k Rows)
+    participant T as Embedding Engine (all-MiniLM-L6-v2)
+    participant S as MinMaxScaler
+    participant C as Classifier Bench (MNB, LogReg, SVC, RF)
+    participant E as Evaluator
+
+    D->>T: Batch input text (train/test)
+    T->>T: Generate 384-dim dense vectors
+    T->>S: Embeddings (fit on train only)
+    S->>S: Normalize to [0, 1] for MNB
+    S->>C: Scaled train & test embeddings
+    C->>C: Train each classifier
+    C->>E: Predictions & true labels
+    E->>E: Compute metrics & confusion matrices
+    E->>E: Generate part2_model_comparison.png
+```
+
+---
+
+### Part 3: Hierarchical Discovery & Labeling
 
 The following sequence diagram illustrates the lifecycle of a document as it moves through the unsupervised discovery and labeling phase.
 
@@ -103,14 +154,22 @@ A core architectural requirement is the **Global Row ID Mapping**.
 ## 📁 Directory Structure
 
 ```
-├── src/
-│   ├── data.py           # Data loading & metadata stripping
-│   ├── llm_labeler.py    # OpenAI integration & fallback logic
-│   ├── part3_clustering.py # K-Means & Tree visualization
-│   └── eval.py           # Metric calculation & plotting
+├── .venv/                  # Virtual environment (library root)
 ├── scripts/
-│   ├── run_part1.py      # Classic ML runner
-│   ├── run_part2.py      # Embedding ML runner
-│   └── run_part3.py      # Clustering & PDF runner
-└── outputs/              # PNGs, PDFs, and JSON results
-```****
+│   ├── outputs/            # PNGs, PDFs, and JSON results
+│   ├── demo_data_viewer.py # Data inspection utility
+│   ├── run_part1.py        # Classic ML runner
+│   ├── run_part2.py        # Embedding ML runner
+│   └── run_part3.py        # Clustering & PDF runner
+├── src/
+│   ├── config.py           # Configuration & constants
+│   ├── data.py             # Data loading & metadata stripping
+│   ├── eval.py             # Metric calculation & plotting
+│   ├── llm_labeler.py      # OpenAI integration & fallback logic
+│   ├── part1_classic.py    # BoW/TF-IDF & classic classifiers
+│   ├── part2_embeddings.py # Sentence transformers & embedding classifiers
+│   ├── part3_clustering.py # K-Means & tree visualization
+│   └── utils.py            # Shared utilities
+├── .env                    # OPENAI_API_KEY (optional, for Part 3 labeling)
+└── requirements.txt        # Python dependencies
+```
